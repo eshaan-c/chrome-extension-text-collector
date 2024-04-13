@@ -21,9 +21,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     const regex = /[^\w\s]/g;
   
     // Replace all occurrences of symbols with an empty string
-    const noSymbolStringTrimmed = selectedText.replace(regex, '').trim();
+    const noSymbolStringTrimmed = selectedText.replace(regex, '').trim().toLocaleUpperCase();
     const codeAndNumber = noSymbolStringTrimmed.split(/ /); // splits by space 
-    const cleanedInputCourse = codeAndNumber[0] + '-' + codeAndNumber[1]; // assume for now that correct, separated by space
+    const cleanedInputCourse = codeAndNumber[0] + '-' + codeAndNumber[1]; // Code-Number e.g CIS-1200
 
     const newinput = {
       inputcourse : cleanedInputCourse
