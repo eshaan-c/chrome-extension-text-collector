@@ -17,8 +17,13 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     const selectedText = info.selectionText; // Get the selected text
 
     // Gotta clean the input here
-    const arr = selectedText.split(' ');
-    const cleanedInputCourse = arr[0] + '-' + arr[1]; // assume for now that correct, separated by space
+    // Define a regular expression to match any non-word characters (symbols)
+    const regex = /[^\w\s]/g;
+  
+    // Replace all occurrences of symbols with an empty string
+    const noSymbolStringTrimmed = selectedText.replace(regex, '').trim();
+    const codeAndNumber = noSymbolStringTrimmed.split(/ /); // splits by space 
+    const cleanedInputCourse = codeAndNumber[0] + '-' + codeAndNumber[1]; // assume for now that correct, separated by space
 
     const newinput = {
       inputcourse : cleanedInputCourse
