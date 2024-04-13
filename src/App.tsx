@@ -1,58 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Snippet, SnippetList } from './components/SnippetList';
-
-// Define a sample snippet for initial state when local storage is empty
-const sample_snippet: Snippet = { id: 1, text: 'Sample snippet' };
+import axios from 'axios'
+import { SnippetItem } from './components/SnippetItem';
+import { MiniSnippetItem } from './components/MiniSnippet'
 
 function App() {
-  // Define the state variable for storing the list of snippets
-  const [snippets, setSnippets] = useState<Snippet[]>([]);
+  const [courseInput, setCourseInput] = useState('');
+  const [courseResult, setCourseResult] = useState({description: 'No Course Selected'});
 
-  // Use useEffect to load snippets from local storage when the component mounts
+  const rootURL = 'https://penncoursereview.com/api/base/current/courses';
+
+  // asynchronously calls the penn course review API with the input course
+  const fetchCourse = async () => {
+    try {
+      const response = await axios.get(`${rootURL}/${courseInput}`);
+      setCourseResult({description : response.data.description});
+      console.log(response);
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+  };
+
+  // whenever the inputcourse changes, it calls fetchCourse 
   useEffect(() => {
-    chrome.storage.local.get('snippets', (result) => {
-      if (result.snippets === undefined) {
-        // If 'snippets' key doesn't exist in local storage, set the initial state with the sample snippet
-        setSnippets([sample_snippet]);
+    chrome.storage.local.get('inputcourse', (result) => {
+      if (result === undefined) {
+        setCourseResult({description : 'no course'});
       } else {
-        // If 'snippets' key exists in local storage, set the state with the stored snippets
-        setSnippets(result.snippets);
+        setCourseInput(result.inputcourse);
       }
     });
-  }, []);
-
-  // Handler for editing a snippet
-  const handleEditSnippet = (id: number, newText: string) => {
-    // Create a new array with the updated snippet
-    const updatedSnippets = snippets.map((snippet) =>
-      snippet.id === id ? { ...snippet, text: newText } : snippet
-    );
-    // Update the state with the new array
-    setSnippets(updatedSnippets);
-    // Save the updated snippets to local storage
-    chrome.storage.local.set({ snippets: updatedSnippets });
-  };
-
-  // Handler for deleting a snippet
-  const handleDeleteSnippet = (id: number) => {
-    // Create a new array without the deleted snippet
-    const updatedSnippets = snippets.filter((snippet) => snippet.id !== id);
-    // Update the state with the new array
-    setSnippets(updatedSnippets);
-    // Save the updated snippets to local storage
-    chrome.storage.local.set({ snippets: updatedSnippets });
-  };
+    fetchCourse();
+  }, [courseInput]);
 
   return (
     <div className="App">
-      <h1>Snippet Collector</h1>
+      <h1>Penn Course Review Extension</h1>
       {/* Render the SnippetList component with the snippets and event handlers */}
-      <SnippetList
-        snippets={snippets}
-        onEditSnippet={handleEditSnippet}
-        onDeleteSnippet={handleDeleteSnippet}
-      />
+      <MiniSnippetItem text={courseInput} />
+      <MiniSnippetItem text={courseResult.description} />
     </div>
   );
 }
