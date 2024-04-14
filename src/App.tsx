@@ -5,9 +5,27 @@ import axios from 'axios'
 import { SnippetItem } from './components/SnippetItem';
 import { MiniSnippetItem } from './components/MiniSnippet'
 
+interface Instructor {
+  name: string;
+}
+
+interface Section {
+  instructors: Instructor[];
+}
+
 function App() {
   const [courseInput, setCourseInput] = useState('');
-  const [courseResult, setCourseResult] = useState({description: 'No Course Selected'});
+  const [courseResult, setCourseResult] = useState({
+    title: '',
+    description: 'No Course Selected',
+    prerequisites: '',
+    course_quality: 0,
+    instructor_quality: 0,
+    difficulty: 0,
+    work_required: 0,
+    credits: 0,
+    instructors: [] as string[]
+  });
 
   const rootURL = 'https://penncoursereview.com/api/base/current/courses';
 
@@ -15,7 +33,24 @@ function App() {
   const fetchCourse = async () => {
     try {
       const response = await axios.get(`${rootURL}/${courseInput}`);
-      setCourseResult({description : response.data.description});
+      const data = response.data;
+
+      // Parse instructor names from sections
+      const instructors = data.sections.flatMap((section: Section) => 
+        section.instructors.map((instructor: Instructor) => instructor.name)
+      );
+
+      setCourseResult({
+        title: data.title,
+        description: data.description,
+        prerequisites: data.prerequisites,
+        course_quality: data.course_quality,
+        instructor_quality: data.instructor_quality,
+        difficulty: data.difficulty,
+        work_required: data.work_required,
+        credits: data.credits,
+        instructors: instructors // Set the parsed instructor names
+      });
       console.log(response);
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -26,7 +61,17 @@ function App() {
   useEffect(() => {
     chrome.storage.local.get('inputcourse', (result) => {
       if (result === undefined) {
-        setCourseResult({description : 'no course'});
+        setCourseResult({
+          title: '',
+          description: 'No Course Selected',
+          prerequisites: '',
+          course_quality: 0,
+          instructor_quality: 0,
+          difficulty: 0,
+          work_required: 0,
+          credits: 0,
+          instructors: [] as string[]
+        });
       } else {
         setCourseInput(result.inputcourse);
       }
@@ -37,9 +82,17 @@ function App() {
   return (
     <div className="App">
       <h1>Penn Course Review Extension</h1>
-      {/* Render the SnippetList component with the snippets and event handlers */}
-      <MiniSnippetItem text={courseInput} />
+      <MiniSnippetItem text={courseResult.title} />
       <MiniSnippetItem text={courseResult.description} />
+      <MiniSnippetItem text={courseResult.prerequisites} />
+      <MiniSnippetItem text={`Course Quality: ${courseResult.course_quality}`} />
+      <MiniSnippetItem text={`Instructor Quality: ${courseResult.instructor_quality}`} />
+      <MiniSnippetItem text={`Difficulty: ${courseResult.difficulty}`} />
+      <MiniSnippetItem text={`Work Required: ${courseResult.work_required}`} />
+      <MiniSnippetItem text={`Credits: ${courseResult.credits}`} />
+      {courseResult.instructors.map((instructor, index) => (
+        <MiniSnippetItem key={index} text={instructor} />
+      ))}
     </div>
   );
 }
