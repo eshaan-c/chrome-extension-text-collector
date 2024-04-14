@@ -40,9 +40,18 @@ function App() {
         section.instructors.map((instructor: Instructor) => instructor.name)
       );
 
+      // Check if description contains "<b>" or "<p>" and remove that and all text after it
+      let description = data.description;
+      if (description.includes('<b>')) {
+        description = description.split('<b>')[0];
+      }
+      if (description.includes('<p>')) {
+        description = description.split('<p>')[0];
+      }
+
       setCourseResult({
         title: data.title,
-        description: data.description,
+        description: description,
         prerequisites: data.prerequisites,
         course_quality: data.course_quality,
         instructor_quality: data.instructor_quality,
